@@ -4,9 +4,9 @@ Using the Spotify API and machine learning to find new music
 NOTE: I'm frequently tinkering with this repository to try and improve performance
 
 ## Overview
-Spotify has a lot of cool features that casual users might not be aware of. First, any Spotify user can download their streaming history (for the past 1-2 years), their playlists, and some other stuff related to their account. Second, the company has some pretty incredible API's for developers and other curious folks. I don't have a lot of experience working with API's but I personally found Spotify's to be very intuitive and accessible. Third, Spotify has come up with some interesting ways to characterize tracks and artists. For tracks, there are about a dozen audio features that characterize the sound of a song (e.g., acousticness, danceability, energy, instrumentalness, loudness). 
+Spotify has a lot of cool features that casual users might not be aware of. First, any Spotify user can download their streaming history (for the past 1-2 years), their playlists, and some other stuff related to their account. Second, the company has some pretty incredible API's for developers and other curious folks. I don't have a lot of experience working with API's but I personally found Spotify's to be very intuitive and accessible. Third, Spotify has come up with some interesting ways to characterize tracks and artists. For tracks, there are about a dozen audio features that characterize the sound of a song (e.g., acousticness, danceability, energy, instrumentalness, loudness). In addition to the audio features, Spotify characterizes artists with over 1500 genres. These include broad categories such as "rock" or "hip-hop", but also include some rather niche categories such as "post-doom metal" and "new orleans rap".
 
-I thought it would be fun to leverage my streaming history, Spotify's API's, and these audio features to try and construct models that might be able to predict how much I will like a song, and then use these models to identify new music to listen to. 
+I thought it would be fun to leverage my streaming history, Spotify's API's, and these audio features and genres to try and construct models that might be able to predict how much I will like a song, and then use these models to identify new music to listen to. 
 
 ## Current Modeling Strategy
 Details TBD
