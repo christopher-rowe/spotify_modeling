@@ -1,0 +1,11 @@
+# .gitignore
+
+.DS_Store
+config.py
+code/.vscode
+code/.vscode/settings.json
+data/raw/
+data/MyData/
+envs/
+__pycache__/
+sandbox.py
