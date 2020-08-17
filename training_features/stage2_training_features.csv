@@ -10,11 +10,13 @@ liveness
 valence
 tempo
 album_rock
+alternative_r&b
 alternative_rock
 art_rock
 atl_hip_hop
 background_piano
 baroque
+blues_rock
 classic_rock
 classical
 classical_era
@@ -24,10 +26,12 @@ country_road
 country_rock
 dance_pop
 dance_rock
+dirty_south_rap
 early_music
 edm
 electropop
 folk_rock
+gangster_rap
 german_baroque
 hard_rock
 hip_hop
@@ -47,6 +51,7 @@ pop
 pop_rap
 pop_rock
 post-teen_pop
+protopunk
 psychedelic_rock
 rap
 rock
@@ -54,7 +59,9 @@ soft_rock
 southern_hip_hop
 stomp_and_holler
 trap
+underground_hip_hop
 classic_soul
 funk
+memphis_soul
 soul
 southern_soul

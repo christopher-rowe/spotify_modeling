@@ -6,10 +6,24 @@ NOTE: I'm frequently tinkering with this repository to try and improve performan
 ## Overview
 Spotify has a lot of cool features that casual users might not be aware of. First, any Spotify user can download their streaming history (for the past 1-2 years), their playlists, and some other stuff related to their account. Second, the company has some pretty incredible API's for developers and other curious folks. I don't have a lot of experience working with API's but I personally found Spotify's to be very intuitive and accessible. Third, Spotify has come up with some interesting ways to characterize tracks and artists. For tracks, there are about a dozen audio features that characterize the sound of a song (e.g., acousticness, danceability, energy, instrumentalness, loudness). In addition to the audio features, Spotify characterizes artists with over 1500 genres. These include broad categories such as "rock" or "hip-hop", but also include some rather niche categories such as "post-doom metal" and "new orleans rap".
 
-I thought it would be fun to leverage my streaming history, Spotify's API's, and these audio features and genres to try and construct models that might be able to predict how much I will like a song, and then use these models to identify new music to listen to. 
+I thought it would be fun to leverage my personal streaming history, Spotify's API's, and these audio features and genres to try and construct models that might be able to predict how much I will like a song, and then use these models to identify new music to listen to. 
 
-## Current Modeling Strategy
-Details TBD
+## Current Modeling Approach
+
+First iteration (populating initial candidate pool):
+1. Obtain "random" tracks from entire Spotify library.
+2. Use audio features and genres of the track to predict whether I will like them (details below)
+3. Push tracks with highest predicted values to a Spotify playlist called "data_candidates"
+4. Listen to the candidates, add them to a playlist called "data_1" if I like the track and one called "data_0" if I don't, and remove them from the "data_candidates" playlist.
+
+Subsequent Iterations
+1. Obtain "random" tracks from entire Spotify library.
+2. Use audio features and genres of the track to predict whether I will like them (details below)
+3. Use audio features and genre of the tracks to predict whether the song would end up in "data_1" or "data_0"
+4. Create a composite score using predicted values from the models in steps 2-3 above.
+3. Push tracks with highest predicted values to a Spotify playlist called "data_candidates"
+4. Listen to the candidates, add them to a playlist called "data_1" if I like the track and one called "data_0" if I don't, and remove them from the "data_candidates" playlist.
+5. Repeat, tweaking various process details.
 
 ## Organization
 - /data: 
