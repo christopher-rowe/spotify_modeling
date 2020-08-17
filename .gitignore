@@ -9,4 +9,4 @@ data/MyData/
 envs/
 __pycache__/
 sandbox.py
-.cache-crowe@ucla.edu/
+.cache*
