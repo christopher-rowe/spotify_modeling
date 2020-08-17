@@ -56,11 +56,11 @@ def getGenreDummies(genres):
     #all_genres = [eval(item) if type(item) == str else item for item in all_genres]
     #all_genres = [['none'] if type(item) == float else item for item in all_genres]
 
-    # add underscores to single genres
-    genres = [[x.replace(" ", "_") for x in z] for z in genres]
-
     # add 'none' genre is there is no genre
     genres = [['none'] if len(x) == 0 else x for x in genres]
+
+    # add underscores to single genres
+    genres = [[x.replace(" ", "_") for x in z] for z in genres]
 
     # convert to dataframe and create dummies for each genre
     df = pd.DataFrame()

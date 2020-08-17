@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# File name: main.py
+# File name: main_candidates.py
 # Description: Identify and add candidates to data_candidates spotify playlist
 # Author: Chris Rowe
 # Date: 08-08-2020
@@ -40,8 +40,9 @@ def main():
 
     # identify candidates and push to spotify playlist
     print("Obtaining Random Tracks, fitting models, and retaining top candidates...")
-    for __ in range(10):
-        print('5-track Iteration: ' + str(__))
+    n_iter = 10
+    for __ in range(n_iter):
+        print('Iteration: ' + str(__) + ' of ' + str(n_iter))
         all_random_tracks = []
         all_random_track_genres = []
         while len(all_random_tracks) < 500:
@@ -73,8 +74,11 @@ def main():
 
         # predict stage 2 outcomes
         stage2_p = [item[1] for item in xgb_stage2_model.predict_proba(X_random_stage2)] 
-        all_random_tracks['total_p'] = stage1_playlist_p*stage1_score_p*stage2_p
-        candidates = list(all_random_tracks.sort_values('total_p', ascending=False).iloc[0:5, 1])
+        all_random_tracks['total_playlist_p'] = stage1_playlist_p*stage2_p
+        all_random_tracks['total_score_p'] = stage1_score_p*stage2_p
+        candidates_playlist = list(all_random_tracks.sort_values('total_playlist_p', ascending=False).iloc[0:5, 1])
+        candidates_score = list(all_random_tracks.sort_values('total_score_p', ascending=False).iloc[0:5, 1])
+        candidates = list(set(candidates_playlist + candidates_score))
         fc.addCandidates(token, candidates, target_playlist)
 
     print("Candidate search complete, playlist updated!")
