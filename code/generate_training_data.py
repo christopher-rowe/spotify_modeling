@@ -57,7 +57,7 @@ def getGenreDummies(genres):
     #all_genres = [['none'] if type(item) == float else item for item in all_genres]
 
     # add 'none' genre is there is no genre
-    genres = [['none'] if len(x) == 0 else x for x in genres]
+    genres = [['none'] if (len(x) == 0 or x is None) else x for x in genres]
 
     # add underscores to single genres
     genres = [[x.replace(" ", "_") for x in z] for z in genres]

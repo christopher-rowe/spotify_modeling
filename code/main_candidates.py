@@ -41,7 +41,7 @@ def main():
 
     # identify candidates and push to spotify playlist
     print("Obtaining Random Tracks, fitting models, and retaining top candidates...")
-    n_iter = 10
+    n_iter = 1
     for __ in range(n_iter):
         print('Iteration: ' + str(__) + ' of ' + str(n_iter))
         all_random_tracks = []
@@ -75,11 +75,8 @@ def main():
 
         # predict stage 2 outcomes
         stage2_p = np.array([item[1] for item in xgb_stage2_model.predict_proba(X_random_stage2)])
-        all_random_tracks['total_playlist_p'] = stage1_playlist_p*stage2_p
-        all_random_tracks['total_score_p'] = stage1_score_p*stage2_p
-        candidates_playlist = list(all_random_tracks.sort_values('total_playlist_p', ascending=False).iloc[0:5, 1])
-        candidates_score = list(all_random_tracks.sort_values('total_score_p', ascending=False).iloc[0:5, 1])
-        candidates = list(set(candidates_playlist + candidates_score))
+        all_random_tracks['total_p'] = stage1_score_p*stage1_playlist_p*stage2_p
+        candidates = list(all_random_tracks.sort_values('total_p', ascending=False).iloc[0:5, 1])
         fc.addCandidates(auth, token, refresh_token, candidates, target_playlist)
 
     print("Candidate search complete, playlist updated!")
