@@ -31,7 +31,7 @@ def main():
    
     # Processing data playlists and fitting stage 2 model
     print("Processing data playlists and fitting stage 2 model...")
-    X_data_playlists, y_data_playlists = fc.getDataPlaylistXY(token)
+    X_data_playlists, y_data_playlists = fc.getDataPlaylistXY(auth, token, refresh_token)
     xgb_stage2_model = fc.fitDataPlaylistModel(X_data_playlists, y_data_playlists)
     print("--Stage 2 model ready!")
 
@@ -46,9 +46,9 @@ def main():
         print('Iteration: ' + str(__) + ' of ' + str(n_iter))
         all_random_tracks = []
         all_random_track_genres = []
-        while len(all_random_tracks) < 50:
+        while len(all_random_tracks) < 500:
             id, uri, name, artist = fc.getRandomTrack(auth, token, refresh_token)
-            features, genres = gf.get_api_features(id, token)
+            features, genres = gf.get_api_features(id, auth, token, refresh_token)
             if isinstance(features, dict):
                 new_record = [id, uri, name, artist] + list(features.values())[0:11]
                 all_random_tracks.append(new_record)
@@ -80,7 +80,7 @@ def main():
         candidates_playlist = list(all_random_tracks.sort_values('total_playlist_p', ascending=False).iloc[0:5, 1])
         candidates_score = list(all_random_tracks.sort_values('total_score_p', ascending=False).iloc[0:5, 1])
         candidates = list(set(candidates_playlist + candidates_score))
-        fc.addCandidates(token, candidates, target_playlist)
+        fc.addCandidates(auth, token, refresh_token, candidates, target_playlist)
 
     print("Candidate search complete, playlist updated!")
 

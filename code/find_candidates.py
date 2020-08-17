@@ -46,7 +46,7 @@ def getRandomTrack(auth, token, refresh_token):
     except:
         return None, None, None, None
     
-def addCandidates(token, candidates, playlist_id):
+def addCandidates(auth, token, refresh_token, candidates, playlist_id):
 
     headers = {
     'Accept': 'application/json',
@@ -64,8 +64,8 @@ def addCandidates(token, candidates, playlist_id):
     try:
         requests.post(url, headers = headers, timeout = 5)    
     except:
-        token = gf.get_token(username, client_id, 
-                             client_secret, redirect_url, scope)
+        token = auth.refresh_access_token(refresh_token)['access_token']
+        refresh_token = auth.refresh_access_token(refresh_token)['refresh_token']
         headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ def addCandidates(token, candidates, playlist_id):
         }
         requests.post(url, headers = headers, timeout = 5)    
 
-def getDataPlaylistXY(token):
+def getDataPlaylistXY(auth, token, refresh_token):
 
     headers = {
     'Accept': 'application/json',
@@ -91,7 +91,7 @@ def getDataPlaylistXY(token):
             url =  'https://api.spotify.com/v1/playlists/5Dm6quiW1b89HzOMgY083R/tracks?offset=' + str(offset)
             response = requests.get(url, headers = headers, timeout = 5)    
             id_0.extend([x['track']['id'] for x in response.json()['items']]) 
-    features_0, genres_0 = zip(*[gf.get_api_features(x, token) for x in id_0])
+    features_0, genres_0 = zip(*[gf.get_api_features(x, auth, token, refresh_token) for x in id_0])
     features_0 = pd.DataFrame(features_0)
     X_0 = features_0.iloc[:, 0:11]
     genre_dummies_0 = gtd.getGenreDummies(genres_0)    
@@ -108,7 +108,7 @@ def getDataPlaylistXY(token):
             url =  'https://api.spotify.com/v1/playlists/3qHfRMRSL8sVzV0z3devQf/tracks?offset=' + str(offset)
             response = requests.get(url, headers = headers, timeout = 5)    
             id_1.extend([x['track']['id'] for x in response.json()['items']])
-    features_1, genres_1 = zip(*[gf.get_api_features(x, token) for x in id_1])
+    features_1, genres_1 = zip(*[gf.get_api_features(x, auth, token, refresh_token) for x in id_1])
     features_1 = pd.DataFrame(features_1)
     X_1 = features_1.iloc[:, 0:11]
     genre_dummies_1 = gtd.getGenreDummies(genres_1)    

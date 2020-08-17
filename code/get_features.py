@@ -43,8 +43,7 @@ def get_token(username: str,
 
     return auth, token, refresh_token
 
-def get_api_id_date(track_name: str, artist: str,
-                    token: str) -> str:
+def get_api_id_date(track_name, artist, auth, token, refresh_token):
     """ Obtain track id and release date from spotify api
 
     Args:
@@ -70,6 +69,15 @@ def get_api_id_date(track_name: str, artist: str,
     # execute api request
     try:
         response = requests.get(url, headers = headers, timeout = 5)
+        if response.status_code == 401:
+            token = auth.refresh_access_token(refresh_token)['access_token']
+            refresh_token = auth.refresh_access_token(refresh_token)['refresh_token']
+            headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer ' + token,
+            }
+            response = requests.get(url, headers = headers, timeout = 5)
         json = response.json()
         first_result = json['tracks']['items'][0]
         track_id = first_result['id']
@@ -79,7 +87,7 @@ def get_api_id_date(track_name: str, artist: str,
         return None, None
 
 
-def get_api_features(track_id: str, token: str) -> dict:
+def get_api_features(track_id, auth, token, refresh_token):
     """ obtain track features from spotify api
 
     Args:
@@ -90,21 +98,30 @@ def get_api_features(track_id: str, token: str) -> dict:
         dict: spotify track features as dictionary   
     """
 
-    # obtain spotify features using spotipy library
-    sp = spotipy.Spotify(auth=token)
-    try:
-        features = sp.audio_features([track_id])[0]
-    except:
-        features = None
-
-     # obtain genre
     headers = {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
     'Authorization': f'Bearer ' + token,
     }
 
-    # process get artist genre
+    # get track features
+    try:
+        url =  'https://api.spotify.com/v1/audio-features/' + track_id
+        response = requests.get(url, headers = headers, timeout = 5)  
+        if response.status_code == 401:
+            token = auth.refresh_access_token(refresh_token)['access_token']
+            refresh_token = auth.refresh_access_token(refresh_token)['refresh_token']
+            headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer ' + token,
+            }
+            response = requests.get(url, headers = headers, timeout = 5)
+        features = response.json()
+    except: 
+        features = None
+
+    # get artist genre
     try:
         url =  'https://api.spotify.com/v1/tracks/' + track_id
         response = requests.get(url, headers = headers, timeout = 5)  
