@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-# File name: process_tracks.py
+# File name: get_features.py
 # Description: To initialize spotify authenticaion parameters
 # Author: Chris Rowe
 # Date: 04-07-2020
 
 # import libraries
 import json
-import spotipy.util as util
+from spotipy.oauth2 import SpotifyOAuth
 import os
 import ast
 import pandas as pd
@@ -14,11 +14,10 @@ import requests
 import spotipy
 import urllib
 
-
 def get_token(username: str, 
               client_id: str,
               client_secret: str,
-              redirect_url: str,
+              redirect_uri: str,
               scope: str) -> str:
     """[summary]
 
@@ -33,13 +32,16 @@ def get_token(username: str,
         str: token needed for accessing spotify api
     """
 
-    token = util.prompt_for_user_token(username=username, 
-                                       scope=scope, 
-                                       client_id=client_id,   
-                                       client_secret=client_secret,     
-                                       redirect_uri=redirect_url)
+    auth = SpotifyOAuth(client_id=client_id, 
+                        client_secret=client_secret,
+                        redirect_uri=redirect_uri,
+                        scope=scope,
+                        username=username)
 
-    return token
+    token = auth.get_access_token()['access_token']
+    refresh_token = auth.get_access_token()['access_token']
+
+    return auth, token, refresh_token
 
 def get_api_id_date(track_name: str, artist: str,
                     token: str) -> str:

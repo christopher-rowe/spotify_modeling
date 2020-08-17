@@ -24,8 +24,8 @@ def main():
 
     # get spotify authentication token
     print("Getting the spotify authentication token...")
-    token = gf.get_token(username, client_id, 
-                         client_secret, redirect_url, scope)
+    auth, token, refresh_token = gf.get_token(username, client_id, 
+                                              client_secret, redirect_uri, scope)
     print("--Token recieved!")
    
     # Processing data playlists and fitting stage 2 model
@@ -45,7 +45,7 @@ def main():
         all_random_tracks = []
         all_random_track_genres = []
         while len(all_random_tracks) < 500:
-            id, uri, name, artist = fc.getRandomTrack(token)
+            id, uri, name, artist = fc.getRandomTrack(auth, token, refresh_token)
             features, genres = gf.get_api_features(id, token)
             if isinstance(features, dict):
                 new_record = [id, uri, name, artist] + list(features.values())[0:11]

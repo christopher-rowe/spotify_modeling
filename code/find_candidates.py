@@ -9,7 +9,7 @@ import numpy as np
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import RandomizedSearchCV
 
-def getRandomTrack(token):
+def getRandomTrack(auth, token, refresh_token):
     
     headers = {
     'Accept': 'application/json',
@@ -27,17 +27,15 @@ def getRandomTrack(token):
     # make request & obtain and return random track details
     try:
         response = requests.get(url, headers = headers, timeout = 5)
-        
         if response.status_code == 401:
-            token = gf.get_token(username, client_id, 
-                                 client_secret, redirect_url, scope)
+            token = auth.refresh_access_token(refresh_token)['access_token']
+            refresh_token = auth.refresh_access_token(refresh_token)['refresh_token']
             headers = {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
             'Authorization': f'Bearer ' + token,
             }
             response = requests.get(url, headers = headers, timeout = 5)
-
         json = response.json()
         random_track = json['tracks']['items'][np.random.choice(len(json['tracks']['items']))]
         track_id = random_track['id']

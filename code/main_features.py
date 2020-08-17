@@ -18,8 +18,8 @@ def main():
 
     # get spotify authentication token
     print("Getting the spotify authentication token...")
-    token = gf.get_token(username, client_id, 
-                         client_secret, redirect_url, scope)
+    auth, token,  refresh_token= gf.get_token(username, client_id, 
+                                              client_secret, redirect_uri, scope)
     print("--Token recieved!")
    
     # convert streaming data from .json to python dictionary
