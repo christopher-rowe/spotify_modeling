@@ -39,7 +39,7 @@ def get_token(username: str,
                         username=username)
 
     token = auth.get_access_token()['access_token']
-    refresh_token = auth.get_access_token()['access_token']
+    refresh_token = auth.get_access_token()['refresh_token']
 
     return auth, token, refresh_token
 

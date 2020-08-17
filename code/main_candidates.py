@@ -6,6 +6,7 @@
 
 import os
 import pandas as pd
+import numpy as np
 import pickle
 import get_features as gf
 import find_candidates as fc
@@ -45,7 +46,7 @@ def main():
         print('Iteration: ' + str(__) + ' of ' + str(n_iter))
         all_random_tracks = []
         all_random_track_genres = []
-        while len(all_random_tracks) < 500:
+        while len(all_random_tracks) < 50:
             id, uri, name, artist = fc.getRandomTrack(auth, token, refresh_token)
             features, genres = gf.get_api_features(id, token)
             if isinstance(features, dict):
@@ -69,11 +70,11 @@ def main():
         X_random_stage2 = X_random_stage2[stage2_features]
 
         # predict stage 1 outcomes
-        stage1_playlist_p = [item[1] for item in xgb_stage1_playlist_model.predict_proba(X_random_stage1)] 
+        stage1_playlist_p = np.array([item[1] for item in xgb_stage1_playlist_model.predict_proba(X_random_stage1)]) 
         stage1_score_p = xgb_stage1_score_model.predict(X_random_stage1)
 
         # predict stage 2 outcomes
-        stage2_p = [item[1] for item in xgb_stage2_model.predict_proba(X_random_stage2)] 
+        stage2_p = np.array([item[1] for item in xgb_stage2_model.predict_proba(X_random_stage2)])
         all_random_tracks['total_playlist_p'] = stage1_playlist_p*stage2_p
         all_random_tracks['total_score_p'] = stage1_score_p*stage2_p
         candidates_playlist = list(all_random_tracks.sort_values('total_playlist_p', ascending=False).iloc[0:5, 1])
