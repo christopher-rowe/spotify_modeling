@@ -10,3 +10,4 @@ envs/
 __pycache__/
 sandbox.py
 .cache*
+code/archive/

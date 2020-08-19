@@ -6,8 +6,7 @@
 # Author: Chris Rowe
 # Date: 04-07-2020
 
-import get_features as gf
-import generate_training_data as gtd
+import spotify_modeling as sm
 import os
 import json
 import pandas as pd
@@ -18,7 +17,7 @@ def main():
 
     # get spotify authentication token
     print("Getting the spotify authentication token...")
-    auth, token,  refresh_token= gf.get_token(username, client_id, 
+    auth, token,  refresh_token= sm.get_token(username, client_id, 
                                               client_secret, redirect_uri, scope)
     print("--Token recieved!")
    
@@ -34,11 +33,11 @@ def main():
     unique_tracks = [dict(y) for y in set(tuple(x.items()) for x in artist_track)]
     print("Getting features from Spotify API for {} unique tracks...".format(len(unique_tracks)))
     for song in unique_tracks:
-        id, date = gf.get_api_id_date(track_name = song['trackName'], 
+        id, date = sm.get_api_id_date(track_name = song['trackName'], 
                                       artist = song['artistName'],
                                       token = token)
         if isinstance(id, str):
-            features, genres = gf.get_api_features(id, token)
+            features, genres = sm.get_api_features(id, token)
             if isinstance(features, dict):
                 features.update({'release_date': date, 'genres': genres})
                 song.update(features)
@@ -64,10 +63,10 @@ def main():
         playlist_raw = json.load(f)
 
     # obtain playlist outcome
-    playlist_tracks = gtd.getPlaylistOutcome(playlist_raw, good_playlist_names)
+    playlist_tracks = sm.getPlaylistOutcome(playlist_raw, good_playlist_names)
 
     # organize training data
-    X, X_columns, y_score, y_playlist = gtd.getTrainingData(df_history, df, playlist_tracks)
+    X, X_columns, y_score, y_playlist = sm.getTrainingData(df_history, df, playlist_tracks)
 
     # save training data as csv
     X_df = pd.DataFrame(X, columns = X_columns)
