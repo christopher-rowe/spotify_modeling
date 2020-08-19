@@ -45,7 +45,6 @@ def main():
         all_random_tracks = []
         all_random_track_genres = []
         while len(all_random_tracks) < 500:
-            print(len(all_random_tracks))
             id, uri, name, artist = sm.getRandomTrack(auth, token, refresh_token)
             features, genres = sm.get_api_features(id, auth, token, refresh_token)
             if isinstance(features, dict):
