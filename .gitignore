@@ -1,7 +1,8 @@
 # .gitignore
 
 .DS_Store
-#config.py
+config.py
+config_public.py
 code/.vscode
 code/.vscode/settings.json
 data/raw/
