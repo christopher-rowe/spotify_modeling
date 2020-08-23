@@ -43,16 +43,17 @@ Here is a more detailed outline of the process:
 5. Repeat, tweaking various process details.
 
 ## Organization
-- \code
+- /code
 	- spotify_modeling.py : includes all custom functions for the project
 	- main_features.py : script for getting audio features and genres for all tracks in streaming history
 	- main_stage1_training_data.py : script for processing streaming history into objects for stage 1 model training
 	- main_stage1_models.py : script for stage 1 feature selection and model fitting
-	- main_candidates.py : script for identifying new candidates and adding them to "data_candidates" Spotify playlist.
-- \saved_models : directory for saved stage 1 model objects
-- \training_features: directory for vectors of features included in each of the three models 
-- \data
-	- \processed:
+	- main_candidates.py : script for identifying new candidates and adding them to "data_candidates" Spotify playlist
+	- config.py : includes authentication parameters necessary for accessing Spotify API, a list of playlist names for engineering the stage 1 playlist outcome, and the ID for the target "data_candidates" playlist
+- /saved_models : directory for saved stage 1 model objects
+- /training_features: directory for vectors of features included in each of the three models 
+- /data
+	- /processed:
 		- streaming_history.csv : my personal streaming history as processed in main_features.py
 		- track_features.csv : unique tracks from my streaming history with audio features and genres as processed in main_features.py
 		- X.csv : full stage 1 design matrix for stage 1 models as processed in main_stage1_training_data.py
@@ -61,6 +62,8 @@ Here is a more detailed outline of the process:
 
 ## Working with the Spotify API
 There are a lot of great resources for getting started with the Spotify API. Just search the internet and you will find a wide variety of Medium articles and blog posts walking through the process. It does require registering an application with Spotify. A lot of folks seem to use the [Stotipy](https://spotipy.readthedocs.io/en/2.13.0/) python library for interacting with the API. I use a bit of the Stopipy library in this project, but mostly just use the Requests library, because the [API](https://developer.spotify.com/documentation/web-api/) is so thoroughly and clearly documented.
+
+Parameters in the code/config.py file will have to be updated to reflect your personal authentication details.
 
 ## Qualitative Progress Notes
 - First cycle: I used only the models fit on my streaming history to identify candidate tracks, I didn't incorporate genre into the models, and I retained the top 5\% performing tracks as candidates. I got some good candidates, but I got more bad candidates, and I got a really high proportion of classical songs (e.g., Bach, Mozart).
