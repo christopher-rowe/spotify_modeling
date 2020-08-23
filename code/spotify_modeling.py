@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
+
 # File name: spotify_modeling.py
-# Description: Using data to find new music
+# Description: All custom functions for using streaming data to 
+#              find new music, used in main_*.py files.
 # Author: Chris Rowe
-# Date: 04-07-2020
 
 # import libraries
 import json
@@ -18,6 +18,7 @@ import random
 import string
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.feature_selection import SelectFromModel
 from config import *
 
 ####################################################
@@ -144,123 +145,8 @@ def get_api_features(track_id, auth, token, refresh_token):
 
     return features, genres
 
-def getPlaylistNames():
-
-    # import playlist data
-    os.chdir(os.path.dirname(os.getcwd()))
-    with open('data/raw/Playlist1.json', 'r') as f:
-        playlist_raw = json.load(f)
-
-    # extract playlist names
-    playlist_names = []
-    for i in range(len(playlist_raw['playlists'])):
-        playlist_names.append(playlist_raw['playlists'][i]['name'])
-
-    # return playlist names
-    return playlist_names
-
-def getPlaylistOutcome(good_playlist_names):
-
-    # import playlist data
-    os.chdir(os.path.dirname(os.getcwd()))
-    with open('data/raw/Playlist1.json', 'r') as f:
-        playlist_raw = json.load(f)
-
-    # obtain list of playlist names
-    playlist_names = []
-    for i in range(len(playlist_raw['playlists'])):
-        playlist_names.append(playlist_raw['playlists'][i]['name'])
-
-    # identify indices of good playlists provided
-    good_indices = []    
-    for name in good_playlist_names:
-        good_indices.append(playlist_names.index(name))
-
-    # initialize empty dataframe
-    playlist_tracks = pd.DataFrame(columns=('trackName', 'artistName'))
-
-    # populate dataframe with tracks from good playlists
-    row = 0
-    for i in good_indices:
-        for j in range(len(playlist_raw['playlists'][i]['items'])):
-            track = playlist_raw['playlists'][i]['items'][j]['track']['trackName']
-            artist = playlist_raw['playlists'][i]['items'][j]['track']['artistName']
-            playlist_tracks.loc[row] = [track, artist]
-            row = row + 1
-
-    # generate outcome as 1
-    playlist_tracks['playlist'] = 1
-
-    # drop duplicates
-    playlist_tracks.drop_duplicates(inplace=True)
-
-    # return
-    return playlist_tracks
-
-def getTrainingData():
-
-    # load streaming history and track features from csv
-    os.chdir(os.path.dirname(os.getcwd()))
-    df_history = pd.read_csv('data/processed/streaming_history.csv')
-    df = pd.read_csv('data/processed/track_features.csv')
-
-    # generate release year column
-    df['release_year'] = df['release_date'].astype(str).str[0:4].astype(float)
-
-    # keep minimal columns
-    df_columns = ['artistName', 'trackName', 'id',
-                'danceability', 'energy', 'key', 
-                'loudness', 'mode', 'speechiness', 
-                'acousticness', 'instrumentalness', 
-                'liveness', 'valence', 'tempo',
-                'duration_ms', 'release_year']
-    df = df[df_columns]
-
-    df_history_columns = ['artistName', 'trackName',
-                        'endTime', 'msPlayed']
-    df_history = df_history[df_history_columns]
-
-    # subset tracks with features
-    tracks_w_features = df.loc[df['id'].isna() == False, :].copy()
-
-    # calculate likeability score
-    min_features = tracks_w_features[['artistName', 'trackName', 'id', 'duration_ms']]
-    outcomes = pd.merge(df_history, min_features, on = ['artistName', 'trackName'])
-    outcomes['p_played'] = outcomes['msPlayed'] / outcomes['duration_ms']
-    outcomes = outcomes[['id', 'artistName', 'trackName', 'p_played']]
-    outcomes = outcomes.groupby(['id', 'artistName', 'trackName'], as_index = False).sum()
-    outcomes = outcomes.rename(columns={'id': 'id', 
-                                        'artistName': 'artistName',
-                                        'trackName': 'trackName',
-                                        'p_played': 'score'})
-    outcomes['score'] = (outcomes['score'] - outcomes['score'].min()) / outcomes['score'].max()
-
-    # obtain playlist outcome
-    playlist_tracks = getPlaylistOutcome(good_playlist_names)
-
-    # merge likeability score with playlist outcome
-    outcomes = pd.merge(outcomes, playlist_tracks, how = 'left',
-                        on = ['artistName', 'trackName'])
-
-    # impute zero values for playlist outcome
-    outcomes.loc[outcomes['playlist'].isna(), 'playlist'] = 0
-
-    # merge features and outcomes
-    final = pd.merge(tracks_w_features, outcomes, on = ['id'])
-
-    # subset X and y's
-    X = final[['danceability', 'energy', 'key', 
-            'loudness', 'mode', 'speechiness', 
-            'acousticness', 'instrumentalness', 
-            'liveness', 'valence', 'tempo']].to_numpy()
-    y_score = final['score'].to_numpy()
-    y_playlist = final['playlist'].to_numpy()
-
-    # return objects
-    return X, y_score, y_playlist
-
 ####################################################
-# functinos for generating training data
+# functions for generating training data
 ####################################################
 
 def getPlaylistNames(playlist_raw):
@@ -308,14 +194,12 @@ def getPlaylistOutcome(playlist_raw, good_playlist_names):
 
 def getGenreDummies(genres):
     
-    # check if input object is series and conver to list
+    # check if input object is series and convert to list
     if isinstance(genres, pd.Series):
         genres = list(genres)
-
-    # archive code (when series was brought from csv) 
-    #all_genres = [eval(item) if type(item) == str else item for item in all_genres]
-    #all_genres = [['none'] if type(item) == float else item for item in all_genres]
-
+        genres = [eval(item) if type(item) == str else item for item in genres]
+        genres = [['none'] if type(item) == float else item for item in genres]
+    
     # add 'none' genre is there is no genre
     genres = [['none'] if (len(x) == 0 or x is None) else x for x in genres]
 
@@ -383,8 +267,8 @@ def getTrainingData(streaming_history, track_features, playlist_tracks):
     # get genre dummies
     genre_dummies = getGenreDummies(final['genres'])
 
-    # identify genres with < 10 songs
-    rare_genres = list(genre_dummies.sum(axis=0).loc[genre_dummies.sum(axis=0) < 10].index)
+    # identify genres with < 20 songs
+    rare_genres = list(genre_dummies.sum(axis=0).loc[genre_dummies.sum(axis=0) < 20].index)
 
     # drop rare genre dummies
     genre_dummies.drop(rare_genres, axis = 1, inplace=True)
@@ -502,8 +386,8 @@ def getDataPlaylistXY(auth, token, refresh_token):
     features_0, genres_0 = zip(*[get_api_features(x, auth, token, refresh_token) for x in id_0])
     features_0 = pd.DataFrame(features_0)
     X_0 = features_0.iloc[:, 0:11]
-    #genre_dummies_0 = getGenreDummies(genres_0) # currently exluding genres
-    #X_0 = pd.concat((X_0, genre_dummies_0), axis = 1) # currently exluding genres
+    genre_dummies_0 = getGenreDummies(genres_0)
+    X_0 = pd.concat((X_0, genre_dummies_0), axis = 1)
 
 
     # process data_1 tracks and obtain X matrix
@@ -519,21 +403,18 @@ def getDataPlaylistXY(auth, token, refresh_token):
     features_1, genres_1 = zip(*[get_api_features(x, auth, token, refresh_token) for x in id_1])
     features_1 = pd.DataFrame(features_1)
     X_1 = features_1.iloc[:, 0:11]
-    #genre_dummies_1 = getGenreDummies(genres_1) # currently exluding genres    
-    #X_1 = pd.concat((X_1, genre_dummies_1), axis = 1) # currently exluding genres
+    genre_dummies_1 = getGenreDummies(genres_1) 
+    X_1 = pd.concat((X_1, genre_dummies_1), axis = 1)
 
     # identify rare genres across both data_0 and data_1 tracks
-    #genre_dummies = pd.concat((genre_dummies_0, genre_dummies_1), axis = 0) # currently exluding genres
-    #genre_dummies.fillna(0, inplace=True) # currently exluding genres
-    #rare_genres = list(genre_dummies.sum(axis=0).loc[genre_dummies.sum(axis=0) < 5].index) # currently exluding genres
+    genre_dummies = pd.concat((genre_dummies_0, genre_dummies_1), axis = 0)
+    genre_dummies.fillna(0, inplace=True)
+    rare_genres = list(genre_dummies.sum(axis=0).loc[genre_dummies.sum(axis=0) < 20].index)
 
     # stack X_0 and X_1, drop rare genres, save features, convert to numpy array
     X = pd.concat((X_0, X_1), axis = 0)
-    #X.fillna(0, inplace=True) # currently exluding genres
-    #X.drop(rare_genres, axis=1, inplace=True) # currently exluding genres
-    pd.DataFrame(X.columns).to_csv('training_features/stage2_training_features.csv',
-                                               index=False, header=False)
-    X = X.to_numpy()
+    X.fillna(0, inplace=True)
+    X.drop(rare_genres, axis=1, inplace=True)
 
     # generate y as numpy arrays
     y_0 = np.array([0] * X_0.shape[0])
@@ -569,21 +450,45 @@ def reconcileGenres(current_genre_dummies, target_genres):
 
 def fitDataPlaylistModel(X, y):
 
-    # identify optimal hyperparameters via random search
-    xgb_param_grid = {'learning_rate': [0.01, 0.05, 0.1, 0.25, 0.5],
-                    'n_estimators': [100, 500, 1000, 1500],
+    # feature selection:
+    # initialize hyperparameter grids for random search
+    xgb_param_grid={'learning_rate': [0.01, 0.1, 0.5],
+                    'n_estimators': [100, 500, 1000],
                     'subsample': [1.0, 0.75, 0.5],
                     'min_samples_split': [2, 5, 10],
-                    'max_depth': [3, 5, 7, 9, 11],
-                    'max_features': [None, 'sqrt']}
+                    'max_depth': [3, 5, 7],
+                    'max_features': [None, 'sqrt']} 
 
-    # initialize model and grid or random search
-    xgb_cls = GradientBoostingClassifier()
-    xgb_cls_rs = RandomizedSearchCV(xgb_cls, xgb_param_grid, n_iter = 100, 
-                                    n_jobs = -1, cv = 10)
+    # initialize model and random search
+    xgb_cls_fs = RandomizedSearchCV(GradientBoostingClassifier(), 
+                                    xgb_param_grid, n_iter = 50, 
+                                    n_jobs = -1, cv = 10, 
+                                    random_state = 6053)
 
-    # Execute search
-    xgb_cls_rs.fit(X, y)
+    # execute search
+    print("Fitting models for feature selection...")
+    xgb_cls_fs.fit(X, y)
+
+    # subset features based on feature importance
+    feat_selector = SelectFromModel(xgb_cls_fs.best_estimator_, prefit=True)
+    X_fs = feat_selector.transform(X)
+    features = feat_selector.get_support()
+
+    # main model
+    # initialize model and random search
+    xgb_cls = RandomizedSearchCV(GradientBoostingClassifier(), 
+                                 xgb_param_grid, n_iter = 50, 
+                                 n_jobs = -1, cv = 10, 
+                                 random_state = 6053)
+
+    # execute search
+    print("Fitting final models...")
+    xgb_cls.fit(X_fs, y)
+
+    # save features 
+    training_features = pd.DataFrame(list(X.columns[features]))
+    training_features.to_csv('training_features/stage2_training_features.csv',
+                             index=False, header=False)
 
     # save optimal model
-    return xgb_cls_rs.best_estimator_
+    return xgb_cls.best_estimator_

@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
+
 # File name: main_candidates.py
 # Description: Identify and add candidates to data_candidates spotify playlist
 # Author: Chris Rowe
-# Date: 08-08-2020
 
 import os
 import random
@@ -34,7 +33,8 @@ def main():
     print("--Stage 2 model ready!")
 
     # obtain stage 1 and stage 2 training features
-    stage1_features = list(pd.read_csv('training_features/stage1_training_features.csv', names=['x']).x)
+    stage1_features_playlist = list(pd.read_csv('training_features/stage1_playlist_training_features.csv', names=['x']).x)
+    stage1_features_score = list(pd.read_csv('training_features/stage1_score_training_features.csv', names=['x']).x)
     stage2_features = list(pd.read_csv('training_features/stage2_training_features.csv', names=['x']).x)
 
     # identify candidates and push to spotify playlist
@@ -57,37 +57,56 @@ def main():
         all_random_tracks.dropna(inplace=True)
         X_random = all_random_tracks[columns[4:15]]
         
+        # initialize list of audio features to identify genre indices
+        audio_features = ['danceability', 'energy', 'key',
+                          'loudness', 'mode', 'speechiness',
+                          'acousticness', 'instrumentalness',
+                          'liveness', 'valence', 'tempo']
+
+        # identify index of training features where genres begin (for reconciling genres between new tracks and training data)
+        stage1_playlist_genre_i = [item in audio_features for item in stage1_features_playlist]
+        stage1_playlist_genre_i = next(idx for idx, item in enumerate(stage1_playlist_genre_i) if item==False)
+        stage1_score_genre_i = [item in audio_features for item in stage1_features_score]
+        stage1_score_genre_i = next(idx for idx, item in enumerate(stage1_score_genre_i) if item==False)
+        stage2_genre_i = [item in audio_features for item in stage2_features]
+        stage2_genre_i = next(idx for idx, item in enumerate(stage2_genre_i) if item==False)
+
         # reconcile genres so they match those used in training model
         genre_dummies = sm.getGenreDummies(all_random_track_genres)
-        genre_dummies_stage1 = sm.reconcileGenres(genre_dummies, stage1_features[11:])
-        #genre_dummies_stage2 = sm.reconcileGenres(genre_dummies, stage2_features[11:])
+        genre_dummies_stage1_playlist = sm.reconcileGenres(genre_dummies, stage1_features_playlist[stage1_playlist_genre_i:])
+        genre_dummies_stage1_score = sm.reconcileGenres(genre_dummies, stage1_features_score[stage1_score_genre_i:])
+        genre_dummies_stage2 = sm.reconcileGenres(genre_dummies, stage2_features[stage2_genre_i:])
 
         # generate stage1 and stage2 X matrices with appropriate genres and feature order
-        X_random_stage1 = pd.concat((X_random, genre_dummies_stage1), axis = 1)
-        X_random_stage1 = X_random_stage1[stage1_features]
-        X_random_stage1.dropna(inplace=True)
-        #X_random_stage2 = pd.concat((X_random, genre_dummies_stage2), axis = 1)
-        X_random_stage2 = X_random
+        X_random_stage1_playlist = pd.concat((X_random, genre_dummies_stage1_playlist), axis = 1)
+        X_random_stage1_playlist = X_random_stage1_playlist[stage1_features_playlist]
+
+        X_random_stage1_score = pd.concat((X_random, genre_dummies_stage1_score), axis = 1)
+        X_random_stage1_score = X_random_stage1_score[stage1_features_score]
+
+        X_random_stage2 = pd.concat((X_random, genre_dummies_stage2), axis = 1)
         X_random_stage2 = X_random_stage2[stage2_features]
-        X_random_stage2.dropna(inplace=True)
 
         # predict stage 1 outcomes
-        stage1_playlist_p = np.array([item[1] for item in xgb_stage1_playlist_model.predict_proba(X_random_stage1)]) 
-        stage1_score_p = xgb_stage1_score_model.predict(X_random_stage1)
+        stage1_playlist_p = np.array([item[1] for item in xgb_stage1_playlist_model.predict_proba(X_random_stage1_playlist)]) 
+        stage1_score_p = xgb_stage1_score_model.predict(X_random_stage1_score)
 
         # predict stage 2 outcomes
         stage2_p = np.array([item[1] for item in xgb_stage2_model.predict_proba(X_random_stage2)])
 
         # calculate 2-stage score and playlist outcomes
         all_random_tracks['stage1_playlist_p'] = stage1_playlist_p
+        all_random_tracks['stage1_score_p'] = stage1_score_p
+        all_random_tracks['stage2_p'] = stage2_p
         all_random_tracks['total_score'] = stage1_score_p*stage2_p
         all_random_tracks['total_playlist'] = stage1_playlist_p*stage2_p
 
-        # select candidates w/stage1 playlist score > 0.5 & random 5 tracks from the top 10 performers for 2-stage outcome metric
-        candidates_stage1_playlist = list(all_random_tracks['uri'].loc[all_random_tracks['stage1_playlist_p']>0.5])
-        candidates_total_score = random.sample(list(all_random_tracks.sort_values('total_score', ascending=False).iloc[0:20, 1]), 5)
-        candidates_total_playlist = random.sample(list(all_random_tracks.sort_values('total_playlist', ascending=False).iloc[0:20, 1]), 5)
-        candidates = list(set(candidates_stage1_playlist + candidates_total_score + candidates_total_playlist))
+        # select top 5 candidates for combined stage1/stage2 scores and stage2 score only
+        #candidates_stage1_playlist = list(all_random_tracks['uri'].loc[all_random_tracks['stage1_playlist_p']>0.5])
+        candidates_total_score = list(all_random_tracks.sort_values('total_score', ascending=False).iloc[0:5, 0])
+        candidates_total_playlist = list(all_random_tracks.sort_values('total_playlist', ascending=False).iloc[0:5, 0])
+        candidates_stage2 = list(all_random_tracks.sort_values('stage2_p', ascending=False).iloc[0:5, 0])
+        candidates = list(set(candidates_total_score + candidates_total_playlist + candidates_stage2))
         sm.addCandidates(auth, token, refresh_token, candidates, target_playlist)
 
     print("Candidate search complete, playlist updated!")

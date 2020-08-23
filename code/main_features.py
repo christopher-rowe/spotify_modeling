@@ -1,10 +1,8 @@
-#!/usr/bin/env python3
-# File name: main.py
+# File name: main_features.py
 # Description: Obtain features for all tracks in streaming 
-#              history, generate outcomes for model fitting
-#              and export all as .csv files
+#              history, organize streaming history, and save
+#              both features and history as .csv files
 # Author: Chris Rowe
-# Date: 04-07-2020
 
 import spotify_modeling as sm
 import os
@@ -80,3 +78,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+df = pd.read_csv('data/processed/track_features.csv')
+df_history = pd.read_csv('data/processed/streaming_history.csv')
