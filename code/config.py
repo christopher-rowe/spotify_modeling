@@ -1,6 +1,6 @@
 
 # File name: config.py
-# Description: To initialize spotify authenticaion parameters
+# Description: To initialize spotify authentication parameters
 #              and other objects
 # Author: Chris Rowe
 
