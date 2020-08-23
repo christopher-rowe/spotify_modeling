@@ -59,6 +59,9 @@ Here is a more detailed outline of the process:
 		- y_playlist.csv : stage 1 playlist outcome as processed in main_stage1_training_data.py
 		- y_score.csv : stage 1 likeability score outcome as processed in main_stage1_training_data.py
 
-## Qualitative Progress Notes:
+## Working with the Spotify API
+There are a lot of great resources for getting started with the Spotify API. Just search the internet and you will find a wide variety of Medium articles and blog posts walking through the process. It does require registering an application with Spotify. A lot of folks seem to use the [Stotipy](https://spotipy.readthedocs.io/en/2.13.0/) python library for interacting with the API. I use a bit of the Stopipy library in this project, but mostly just use the Requests library, because the [API](https://developer.spotify.com/documentation/web-api/) is so thoroughly and clearly documented.
+
+## Qualitative Progress Notes
 - First cycle: I used only the models fit on my streaming history to identify candidate tracks, I didn't incorporate genre into the models, and I retained the top 5\% performing tracks as candidates. I got some good candidates, but I got more bad candidates, and I got a really high proportion of classical songs (e.g., Bach, Mozart).
 - Second cycle: I incorporated genre into the streaming history models (thinking this might suppress the classical songs), incorporated the stage 2 model that uses the first round of candidates as training data, and I retained the top 1\% of performing tracks (thinking if I'm more exclusive, I could weed out some more questionable songs). The percentage of good candidates seemed to improve, no more classical music, but a disproportionately large (relative to what I would like to see) number of rap songs--like 90\%. I also noticed that I'm getting songs that I'm sure I've listened to in the last few years (which defeats the purpose of finding "new" music), so I intend on ultimately stripping those tracks as candidates, but figured I'd let the model choose these for now.
