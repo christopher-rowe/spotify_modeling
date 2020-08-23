@@ -51,6 +51,13 @@ Here is a more detailed outline of the process:
 	- main_candidates.py : script for identifying new candidates and adding them to "data_candidates" Spotify playlist.
 - \saved_models : directory for saved stage 1 model objects
 - \training_features: directory for vectors of features included in each of the three models 
+- \data
+	- \processed:
+		- streaming_history.csv : my personal streaming history as processed in main_features.py
+		- track_features.csv : unique tracks from my streaming history with audio features and genres as processed in main_features.py
+		- X.csv : full stage 1 design matrix for stage 1 models as processed in main_stage1_training_data.py
+		- y_playlist.csv : stage 1 playlist outcome as processed in main_stage1_training_data.py
+		- y_score.csv : stage 1 likeability score outcome as processed in main_stage1_training_data.py
 
 ## Qualitative Progress Notes:
 - First cycle: I used only the models fit on my streaming history to identify candidate tracks, I didn't incorporate genre into the models, and I retained the top 5\% performing tracks as candidates. I got some good candidates, but I got more bad candidates, and I got a really high proportion of classical songs (e.g., Bach, Mozart).
