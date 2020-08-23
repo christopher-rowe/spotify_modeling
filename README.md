@@ -2,7 +2,7 @@
 Using personal streaming history, the Spotify API, and machine learning to find new music.
 
 A couple of important points: 
-1. I am not a software engineer, so this repository is best for folks who are interested in engaging with code and process, as opposed to those looking for a nicely packaged product.
+1. I am not a software engineer, so this repository is best for folks who are interested in engaging and experimenting with the code and process, as opposed to those looking for a nicely packaged product.
 2. I'm frequently tinkering with this repository to try and make improve performance, so it's definitely not static.
 
 ## Overview
@@ -32,7 +32,7 @@ Here is a more detailed outline of the process:
 3. Push tracks with highest predicted values to a personal Spotify playlist called "data_candidates".
 4. Listen to the candidates, add them to a playlist called "data_1" if I like the track and one called "data_0" if I don't, and remove them from the "data_candidates" playlist.
 
-Subsequent Iterations:
+**Subsequent Iterations:**
 1. Obtain tracks and their features/genres from the "data_1" and "data_0" playlists.
 2. Fit stage 2 model to predict the probability that a track made it into the "data_1" playlist. 
 3. Obtain "random" tracks from entire Spotify library.
