@@ -103,9 +103,9 @@ def main():
 
         # select top 5 candidates for combined stage1/stage2 scores and stage2 score only
         #candidates_stage1_playlist = list(all_random_tracks['uri'].loc[all_random_tracks['stage1_playlist_p']>0.5])
-        candidates_total_score = list(all_random_tracks.sort_values('total_score', ascending=False).iloc[0:5, 0])
-        candidates_total_playlist = list(all_random_tracks.sort_values('total_playlist', ascending=False).iloc[0:5, 0])
-        candidates_stage2 = list(all_random_tracks.sort_values('stage2_p', ascending=False).iloc[0:5, 0])
+        candidates_total_score = list(all_random_tracks.sort_values('total_score', ascending=False).iloc[0:5, 1])
+        candidates_total_playlist = list(all_random_tracks.sort_values('total_playlist', ascending=False).iloc[0:5, 1])
+        candidates_stage2 = list(all_random_tracks.sort_values('stage2_p', ascending=False).iloc[0:5, 1])
         candidates = list(set(candidates_total_score + candidates_total_playlist + candidates_stage2))
         sm.addCandidates(auth, token, refresh_token, candidates, target_playlist)
 
