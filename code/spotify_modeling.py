@@ -201,7 +201,8 @@ def getGenreDummies(genres):
         genres = [['none'] if type(item) == float else item for item in genres]
     
     # add 'none' genre is there is no genre
-    genres = [['none'] if (len(x) == 0 or x is None) else x for x in genres]
+    genres = [['none'] if  x is None else x for x in genres]
+    genres = [['none'] if len(x) == 0 else x for x in genres]
 
     # add underscores to single genres
     genres = [[x.replace(" ", "_") for x in z] for z in genres]
@@ -383,7 +384,9 @@ def getDataPlaylistXY(auth, token, refresh_token):
             url =  'https://api.spotify.com/v1/playlists/5Dm6quiW1b89HzOMgY083R/tracks?offset=' + str(offset)
             response = requests.get(url, headers = headers, timeout = 5)    
             id_0.extend([x['track']['id'] for x in response.json()['items']]) 
-    features_0, genres_0 = zip(*[get_api_features(x, auth, token, refresh_token) for x in id_0])
+    features_genres_0 = [get_api_features(x, auth, token, refresh_token) for x in id_0]   
+    features_genres_0_sub = [i for i in features_genres_0 if (isinstance(i[0], dict)) & (isinstance(i[1], list))]    
+    features_0, genres_0 = zip(*features_genres_0_sub)    
     features_0 = pd.DataFrame(features_0)
     X_0 = features_0.iloc[:, 0:11]
     genre_dummies_0 = getGenreDummies(genres_0)
@@ -400,7 +403,9 @@ def getDataPlaylistXY(auth, token, refresh_token):
             url =  'https://api.spotify.com/v1/playlists/3qHfRMRSL8sVzV0z3devQf/tracks?offset=' + str(offset)
             response = requests.get(url, headers = headers, timeout = 5)    
             id_1.extend([x['track']['id'] for x in response.json()['items']])
-    features_1, genres_1 = zip(*[get_api_features(x, auth, token, refresh_token) for x in id_1])
+    features_genres_1 = [get_api_features(x, auth, token, refresh_token) for x in id_1]   
+    features_genres_1_sub = [i for i in features_genres_1 if (isinstance(i[0], dict)) & (isinstance(i[1], list))]    
+    features_1, genres_1 = zip(*features_genres_1_sub)
     features_1 = pd.DataFrame(features_1)
     X_1 = features_1.iloc[:, 0:11]
     genre_dummies_1 = getGenreDummies(genres_1) 
@@ -421,7 +426,10 @@ def getDataPlaylistXY(auth, token, refresh_token):
     y_1 = np.array([1] * X_1.shape[0])
     y = np.concatenate((y_0, y_1))
 
-    return X, y
+    # concatenate id's
+    ids = id_0 + id_1
+
+    return X, y, ids
 
 def reconcileGenres(current_genre_dummies, target_genres):
 

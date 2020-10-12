@@ -16,7 +16,9 @@ def main():
     # import models
     print("Importing models...")
     os.chdir(os.path.dirname(os.getcwd()))
-    xgb_stage1_playlist_model = pickle.load(open('saved_models/xgb_playlist_model_wg.sav', 'rb'))
+    xgb_stage1_playlist_model = pickle.load(open(('saved_models/'
+                                                  'xgb_playlist_model_wg.sav'), 
+                                                  'rb'))
     xgb_stage1_score_model = pickle.load(open('saved_models/xgb_score_model_wg.sav', 'rb'))
     print("--Models imported!")
 
@@ -28,7 +30,7 @@ def main():
    
     # Processing data playlists and fitting stage 2 model
     print("Processing data playlists and fitting stage 2 model...")
-    X_data_playlists, y_data_playlists = sm.getDataPlaylistXY(auth, token, refresh_token)
+    X_data_playlists, y_data_playlists, new_ids = sm.getDataPlaylistXY(auth, token, refresh_token)
     xgb_stage2_model = sm.fitDataPlaylistModel(X_data_playlists, y_data_playlists)
     print("--Stage 2 model ready!")
 
@@ -36,6 +38,14 @@ def main():
     stage1_features_playlist = list(pd.read_csv('training_features/stage1_playlist_training_features.csv', names=['x']).x)
     stage1_features_score = list(pd.read_csv('training_features/stage1_score_training_features.csv', names=['x']).x)
     stage2_features = list(pd.read_csv('training_features/stage2_training_features.csv', names=['x']).x)
+
+    # obtain streaming history ids
+    og_ids = pd.read_csv('data/processed/track_features.csv')['id'].tolist()
+    og_ids = [x for x in og_ids if pd.isnull(x)==False]
+
+    # combine old and new ids
+    all_ids = og_ids + new_ids
+    all_ids = list(set(all_ids))
 
     # identify candidates and push to spotify playlist
     print("Obtaining Random Tracks, fitting models, and retaining top candidates...")
@@ -45,12 +55,14 @@ def main():
         all_random_tracks = []
         all_random_track_genres = []
         while len(all_random_tracks) < 500:
+            print(len(all_random_tracks))
             id, uri, name, artist = sm.getRandomTrack(auth, token, refresh_token)
-            features, genres = sm.get_api_features(id, auth, token, refresh_token)
-            if isinstance(features, dict):
-                new_record = [id, uri, name, artist] + list(features.values())[0:11]
-                all_random_tracks.append(new_record)
-                all_random_track_genres.append(genres)
+            if id not in all_ids:
+                features, genres = sm.get_api_features(id, auth, token, refresh_token)
+                if isinstance(features, dict):
+                    new_record = [id, uri, name, artist] + list(features.values())[0:11]
+                    all_random_tracks.append(new_record)
+                    all_random_track_genres.append(genres)
         columns = ['id', 'uri', 'track', 'artist', 'danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']
         all_random_tracks = pd.DataFrame(all_random_tracks, 
                                         columns = columns) 
